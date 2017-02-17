@@ -1,13 +1,18 @@
-- infos = Information about the enum plugin is in keys below
-- infos/author = Thomas Waser <thomas.waser@libelektra.org>
-- infos/licence = BSD
-- infos/provides = check
-- infos/needs =
-- infos/recommends = 
-- infos/placements = presetstorage
-- infos/status = productive maintained unittest tested nodep libc
-- infos/metadata = check/enum check/enum/# check/enum/multi
-- infos/description = validates values against enum
+
+[comment]: # (block start)
+```ini
+infos = Information about the enum plugin is in keys below
+infos/author = Thomas Waser <thomas.waser@libelektra.org>
+infos/licence = BSD
+infos/provides = check
+infos/needs =
+infos/recommends = 
+infos/placements = presetstorage
+infos/status = productive maintained unittest tested nodep libc
+infos/metadata = check/enum check/enum/# check/enum/multi
+infos/description = validates values against enum
+```
+[comment]: # (block end)
 
 ## Introduction ##
 
