@@ -23,7 +23,7 @@ struct _PrettyHeadNode
 struct _PrettyIndexNode
 {
 	Key * key;
-	ssize_t requiredLenght;
+	ssize_t requiredLength;
 	KeySet * ordered;
 	KeySet * unordered;
 };
@@ -113,7 +113,7 @@ static void prettyCleanUp (PrettyHeadNode * head)
 	keyDel (head->key);
 }
 
-static int addNodes (const Key * key, KeySet * workingSet)
+static int addNodesToIndexNodes (const Key * key, KeySet * workingSet)
 {
 	PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (key);
 	node->ordered = ksNew (0, KS_END);
@@ -126,21 +126,21 @@ static int addNodes (const Key * key, KeySet * workingSet)
 		if (!newKey)
 		{
 			ksAppendKey (node->unordered, keyDup (cur));
-			if ((ssize_t) (keyGetValueSize (cur) + elektraStrLen (keyBaseName (cur))) > node->requiredLenght)
-				node->requiredLenght = (ssize_t) (keyGetValueSize (cur) + elektraStrLen (keyBaseName (cur)));
+			ssize_t requiredLength = (ssize_t) (keyGetValueSize (cur) + elektraStrLen (keyBaseName (cur)));
+			if (requiredLength > node->requiredLength) node->requiredLength = requiredLength;
 		}
 		else
 		{
 			ksAppendKey (node->ordered, newKey);
-			if ((ssize_t) (keyGetValueSize (newKey) + elektraStrLen (keyBaseName (newKey))) > node->requiredLenght)
-				node->requiredLenght = (ssize_t) (keyGetValueSize (newKey) + elektraStrLen (keyBaseName (newKey)));
+			ssize_t requiredLength = (ssize_t) (keyGetValueSize (newKey) + elektraStrLen (keyBaseName (newKey)));
+			if (requiredLength > node->requiredLength) node->requiredLength = requiredLength;
 		}
 	}
 	ksDel (cutKS);
 	return 0;
 }
 
-static void printTree (PrettyHeadNode * head)
+static void printTree (PrettyHeadNode * head, unsigned short level ELEKTRA_UNUSED)
 {
 	fprintf (stderr, "DEBUG: pretting tree\n");
 	ksRewind (head->nodes);
@@ -148,7 +148,7 @@ static void printTree (PrettyHeadNode * head)
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLenght);
+		fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLength);
 		Key * cur2;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
@@ -161,6 +161,15 @@ static void printTree (PrettyHeadNode * head)
 			fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
 		}
 	}
+}
+
+static Key * keyToIndexNodeKey (const Key * key, const Key * parent)
+{
+	PrettyIndexNode * node = elektraCalloc (sizeof (PrettyIndexNode));
+	node->key = keyDup (key);
+	Key * nodeKey = keyNew ("/", KEY_BINARY, KEY_SIZE, sizeof (PrettyIndexNode), KEY_VALUE, &node, KEY_END);
+	keyAddName (nodeKey, elektraKeyGetRelativeName (key, parent));
+	return nodeKey;
 }
 
 int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, Key * parentKey)
@@ -183,20 +192,17 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	{
 		if (!isIndexNode (cur)) continue;
 		fprintf (stderr, "DEBUG: found index node %s\n", keyName (cur));
-		PrettyIndexNode * node = elektraCalloc (sizeof (PrettyIndexNode));
-		node->key = keyDup (cur);
-		Key * nodeKey = keyNew ("/", KEY_BINARY, KEY_SIZE, sizeof (PrettyIndexNode), KEY_VALUE, &node, KEY_END);
-		keyAddName (nodeKey, elektraKeyGetRelativeName (cur, head->key));
+		Key * nodeKey = keyToIndexNodeKey (cur, head->key);
 		ksAppendKey (head->nodes, nodeKey);
 	}
 
 	ksRewind (head->nodes);
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
-		addNodes (cur, workingSet);
+		addNodesToIndexNodes (cur, workingSet);
 	}
 
-	printTree (head);
+	printTree (head, 1);
 
 	prettyCleanUp (head);
 	elektraFree (head);
