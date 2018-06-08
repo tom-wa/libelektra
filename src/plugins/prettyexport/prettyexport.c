@@ -132,6 +132,49 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	{
 		if (!isIndexNode (cur)) continue;
 		fprintf (stderr, "DEBUG: found index node %s\n", keyName (cur));
+		PrettyIndexNode * node = elektraCalloc (sizeof (PrettyIndexNode));
+		node->key = keyDup (cur);
+		Key * nodeKey = keyNew ("/", KEY_BINARY, KEY_SIZE, sizeof (PrettyIndexNode), KEY_VALUE, &node, KEY_END);
+		keyAddName (nodeKey, elektraKeyGetRelativeName (cur, head->key));
+		ksAppendKey (head->nodes, nodeKey);
+	}
+
+	ksRewind (head->nodes);
+	while ((cur = ksNext (head->nodes)) != NULL)
+	{
+		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		node->ordered = ksNew (0, KS_END);
+		node->unordered = ksNew (0, KS_END);
+		KeySet * cutKS = ksCut (workingSet, node->key);
+		Key * cur2;
+		while ((cur2 = ksNext (cutKS)) != NULL)
+		{
+			Key * newKey = keyToFieldIndex (cur2, node->key);
+			if (!newKey)
+				ksAppendKey (node->unordered, keyDup (cur2));
+			else
+				ksAppendKey (node->ordered, newKey);
+		}
+		ksDel (cutKS);
+	}
+
+	fprintf (stderr, "DEBUG: pretting tree\n");
+	ksRewind (head->nodes);
+	while ((cur = ksNext (head->nodes)) != NULL)
+	{
+		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		fprintf (stderr, "DEBUG: INDEX: %s\n", keyName (node->key));
+		Key * cur2;
+		ksRewind (node->ordered);
+		while ((cur2 = ksNext (node->ordered)) != NULL)
+		{
+			fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+		}
+		ksRewind (node->unordered);
+		while ((cur2 = ksNext (node->unordered)) != NULL)
+		{
+			fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+		}
 	}
 
 	prettyCleanUp (head);
