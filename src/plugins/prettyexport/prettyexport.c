@@ -17,7 +17,8 @@
 struct _PrettyIndexNode
 {
 	Key * key;
-	KeySet * keySet;
+	KeySet * ordered;
+	KeySet * unordered;
 };
 
 typedef struct _PrettyIndexNode PrettyIndexNode;
