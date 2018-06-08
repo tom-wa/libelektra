@@ -126,12 +126,14 @@ static int addNodes (const Key * key, KeySet * workingSet)
 		if (!newKey)
 		{
 			ksAppendKey (node->unordered, keyDup (cur));
-			if (keyGetValueSize (cur) > node->requiredLenght) node->requiredLenght = keyGetValueSize (cur);
+			if ((ssize_t) (keyGetValueSize (cur) + elektraStrLen (keyBaseName (cur))) > node->requiredLenght)
+				node->requiredLenght = (ssize_t) (keyGetValueSize (cur) + elektraStrLen (keyBaseName (cur)));
 		}
 		else
 		{
 			ksAppendKey (node->ordered, newKey);
-			if (keyGetValueSize (newKey) > node->requiredLenght) node->requiredLenght = keyGetValueSize (newKey);
+			if ((ssize_t) (keyGetValueSize (newKey) + elektraStrLen (keyBaseName (newKey))) > node->requiredLenght)
+				node->requiredLenght = (ssize_t) (keyGetValueSize (newKey) + elektraStrLen (keyBaseName (newKey)));
 		}
 	}
 	ksDel (cutKS);
@@ -146,7 +148,7 @@ static void printTree (PrettyHeadNode * head)
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		fprintf (stderr, "DEBUG: INDEX: %s\n", keyName (node->key));
+		fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLenght);
 		Key * cur2;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
