@@ -9,8 +9,18 @@
 
 #include "prettyexport.h"
 
+#include <kdbease.h> // elektraArrayValidateName, elektraKeyGetRelativeName
 #include <kdbhelper.h>
+#include <stdio.h>
+#include <stdlib.h>
 
+struct _PrettyIndexNode
+{
+	Key * key;
+	KeySet * keySet;
+};
+
+typedef struct _PrettyIndexNode PrettyIndexNode;
 
 int elektraPrettyexportOpen (Plugin * handle ELEKTRA_UNUSED, Key * errorKey ELEKTRA_UNUSED)
 {
@@ -51,6 +61,22 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	// get all keys
 
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
+}
+
+static Key * keyToFieldIndex (const Key * key, const Key * parent)
+{
+	if (!key) return NULL;
+	const Key * fieldIndexMeta = keyGetMeta (key, "pretty/field");
+	if (!fieldIndexMeta) return NULL;
+	Key * newKey = keyNew (keyName (parent), KEY_VALUE, keyValue (key));
+	keyAddName (newKey, keyString (fieldIndexMeta));
+	if (elektraArrayValidateName (newKey) != 1)
+	{
+		keyDel (newKey);
+		return NULL;
+	}
+	keyAddName (newKey, elektraKeyGetRelativeName (key, parent));
+	return newKey;
 }
 
 int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned ELEKTRA_UNUSED, Key * parentKey ELEKTRA_UNUSED)
