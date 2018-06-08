@@ -60,7 +60,7 @@ static void test_basicKS (void)
 		       keyNew ("user/tests/prettyexport/tgi/shell", KEY_VALUE, "/bin/bash", KEY_META, "pretty/field", "#4", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/home", KEY_VALUE, "/home/tgi", KEY_META, "pretty/field", "#5", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/passwd", KEY_VALUE, "x", KEY_END), KS_END);
-	succeed_if (plugin->kdbSet (plugin, ks, parentKey) >= 1, "failed!");
+	succeed_if (plugin->kdbSet (plugin, ks, parentKey) >= 0, "failed!");
 	ksDel (ks);
 	keyDel (parentKey);
 	PLUGIN_CLOSE ();

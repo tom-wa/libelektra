@@ -14,6 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct _PrettyHeadNode
+{
+	Key * key;
+	KeySet * nodes;
+};
+
 struct _PrettyIndexNode
 {
 	Key * key;
@@ -22,6 +28,7 @@ struct _PrettyIndexNode
 };
 
 typedef struct _PrettyIndexNode PrettyIndexNode;
+typedef struct _PrettyHeadNode PrettyHeadNode;
 
 int elektraPrettyexportOpen (Plugin * handle ELEKTRA_UNUSED, Key * errorKey ELEKTRA_UNUSED)
 {
@@ -80,10 +87,56 @@ static Key * keyToFieldIndex (const Key * key, const Key * parent)
 	return newKey;
 }
 
-int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned ELEKTRA_UNUSED, Key * parentKey ELEKTRA_UNUSED)
+static inline unsigned short isIndexNode (Key * key)
+{
+	if (!key) return 0;
+	if (keyGetMeta (key, "pretty/index"))
+		return 1;
+	else
+		return 0;
+}
+
+static void prettyCleanUp (PrettyHeadNode * head)
+{
+	ksRewind (head->nodes);
+	Key * cur;
+	while ((cur = ksNext (head->nodes)) != NULL)
+	{
+		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		ksDel (node->ordered);
+		ksDel (node->unordered);
+		keyDel (node->key);
+		elektraFree (node);
+	}
+	ksDel (head->nodes);
+	keyDel (head->key);
+}
+
+int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, Key * parentKey)
 {
 	// set all keys
 	// this function is optional
+
+	const Key * prettyType = keyGetMeta (parentKey, "pretty");
+	if (!prettyType) return 0;
+
+	PrettyHeadNode * head = elektraCalloc (sizeof (PrettyHeadNode));
+	head->key = keyDup (parentKey);
+	head->nodes = ksNew (ksGetSize (returned), KS_END);
+
+	KeySet * workingSet = ksDup (returned);
+	ksRewind (workingSet);
+	Key * cur;
+
+	while ((cur = ksNext (workingSet)) != NULL)
+	{
+		if (!isIndexNode (cur)) continue;
+		fprintf (stderr, "DEBUG: found index node %s\n", keyName (cur));
+	}
+
+	prettyCleanUp (head);
+	elektraFree (head);
+	ksDel (workingSet);
 
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
 }
@@ -107,11 +160,11 @@ int elektraPrettyexportCheckConfig (Key * errorKey ELEKTRA_UNUSED, KeySet * conf
 Plugin * ELEKTRA_PLUGIN_EXPORT (prettyexport)
 {
 	// clang-format off
-	return elektraPluginExport ("prettyexport",
-		ELEKTRA_PLUGIN_OPEN,	&elektraPrettyexportOpen,
-		ELEKTRA_PLUGIN_CLOSE,	&elektraPrettyexportClose,
-		ELEKTRA_PLUGIN_GET,	&elektraPrettyexportGet,
-		ELEKTRA_PLUGIN_SET,	&elektraPrettyexportSet,
-		ELEKTRA_PLUGIN_ERROR,	&elektraPrettyexportError,
-		ELEKTRA_PLUGIN_END);
+    return elektraPluginExport ("prettyexport",
+            ELEKTRA_PLUGIN_OPEN,	&elektraPrettyexportOpen,
+            ELEKTRA_PLUGIN_CLOSE,	&elektraPrettyexportClose,
+            ELEKTRA_PLUGIN_GET,	&elektraPrettyexportGet,
+            ELEKTRA_PLUGIN_SET,	&elektraPrettyexportSet,
+            ELEKTRA_PLUGIN_ERROR,	&elektraPrettyexportError,
+            ELEKTRA_PLUGIN_END);
 }
