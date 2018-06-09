@@ -14,34 +14,9 @@
 
 #include <tests_plugin.h>
 
-static void test_basics (void)
-{
-	printf ("test basics\n");
-
-	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_END);
-	KeySet * conf = ksNew (0, KS_END);
-	PLUGIN_OPEN ("prettyexport");
-
-	KeySet * ks = ksNew (0, KS_END);
-
-	succeed_if (plugin->kdbOpen (plugin, parentKey) == ELEKTRA_PLUGIN_STATUS_SUCCESS, "call to kdbOpen was not successful");
-
-	succeed_if (plugin->kdbGet (plugin, ks, parentKey) == ELEKTRA_PLUGIN_STATUS_NO_UPDATE, "call to kdbGet was not successful");
-
-	succeed_if (plugin->kdbSet (plugin, ks, parentKey) == ELEKTRA_PLUGIN_STATUS_NO_UPDATE, "call to kdbSet was not successful");
-
-	succeed_if (plugin->kdbError (plugin, ks, parentKey) == ELEKTRA_PLUGIN_STATUS_SUCCESS, "call to kdbError was not successful");
-
-	succeed_if (plugin->kdbClose (plugin, parentKey) == ELEKTRA_PLUGIN_STATUS_SUCCESS, "call to kdbClose was not successful");
-
-	keyDel (parentKey);
-	ksDel (ks);
-	PLUGIN_CLOSE ();
-}
-
 static void test_basicKS (void)
 {
-	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_VALUE, "/tmp/testoutput.rst", KEY_META, "description",
+	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_VALUE, elektraFilename (), KEY_META, "description",
 				  "this is the mounted passwd file", KEY_META, "pretty", "list", KEY_META, "pretty/index", "name", KEY_END);
 	KeySet * conf = ksNew (0, KS_END);
 	PLUGIN_OPEN ("prettyexport");
@@ -61,6 +36,8 @@ static void test_basicKS (void)
 		       keyNew ("user/tests/prettyexport/tgi/home", KEY_VALUE, "/home/tgi", KEY_META, "pretty/field", "#5", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/passwd", KEY_VALUE, "x", KEY_END), KS_END);
 	succeed_if (plugin->kdbSet (plugin, ks, parentKey) >= 0, "failed!");
+
+	succeed_if (compare_line_files (srcdir_file ("prettyexport/basic.rst"), keyString (parentKey)), "files do not match as expected");
 	ksDel (ks);
 	keyDel (parentKey);
 	PLUGIN_CLOSE ();
@@ -73,9 +50,6 @@ int main (int argc, char ** argv)
 	printf ("==================\n\n");
 
 	init (argc, argv);
-
-	test_basics ();
-
 
 	test_basicKS ();
 
