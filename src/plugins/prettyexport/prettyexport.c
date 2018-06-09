@@ -88,47 +88,49 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 }
 
 
-static void printRstTable (PrettyIndexNode * node, PrettyIndexType indexType)
+static void printRstTable (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
 }
 
-static void printRstFieldList (PrettyIndexNode * node, PrettyIndexType indexType)
+static void printRstFieldList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
 }
-static void printRstList (PrettyIndexNode * node, PrettyIndexType indexType)
+static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing list rst\n");
 	if (indexType == PRETTY_INDEX_NAME)
 	{
-		fprintf (stderr, "%s\n", keyBaseName (node->key));
+		fprintf (fh, "%s\n", keyBaseName (node->key));
 	}
 	else
 	{
-		fprintf (stderr, "%s\n", keyString (node->key));
+		fprintf (fh, "%s\n", keyString (node->key));
 	}
 	KeySet * fields = node->ordered;
 	ksRewind (fields);
 	Key * cur;
 	while ((cur = ksNext (fields)) != NULL)
 	{
-		fprintf (stderr, "  * %s ``%s``\n", keyBaseName (cur), keyString (cur));
+		if (!elektraStrCmp (keyName (cur), keyName (node->key))) continue;
+		fprintf (fh, "  * %s: ``%s``\n", keyBaseName (cur), keyString (cur));
 	}
 	fields = node->unordered;
 	ksRewind (fields);
 	while ((cur = ksNext (fields)) != NULL)
 	{
-		fprintf (stderr, "  * %s ``%s``\n", keyBaseName (cur), keyString (cur));
+		if (!elektraStrCmp (keyName (cur), keyName (node->key))) continue;
+		fprintf (fh, "  * %s: ``%s``\n", keyBaseName (cur), keyString (cur));
 	}
 }
 
-static void printRst (PrettyHeadNode * head)
+static void printRst (FILE * fh, PrettyHeadNode * head)
 {
 	fprintf (stderr, "DEBUG: printing rst\n");
-	fprintf (stderr, "%s\n", keyName (head->key));
+	fprintf (fh, "**%s**\n\n", keyName (head->key));
 	if (keyGetMeta (head->key, "description"))
 	{
-		fprintf (stderr, "%s\n", keyString (keyGetMeta (head->key, "description")));
+		fprintf (fh, "*%s*\n\n", keyString (keyGetMeta (head->key, "description")));
 	}
 
 	ksRewind (head->nodes);
@@ -139,15 +141,15 @@ static void printRst (PrettyHeadNode * head)
 
 		if (head->prettyType == PRETTY_TYPE_TABLE)
 		{
-			printRstTable (node, head->indexType);
+			printRstTable (fh, node, head->indexType);
 		}
 		else if (head->prettyType == PRETTY_TYPE_LIST)
 		{
-			printRstList (node, head->indexType);
+			printRstList (fh, node, head->indexType);
 		}
 		else if (head->prettyType == PRETTY_TYPE_FIELDLIST)
 		{
-			printRstFieldList (node, head->indexType);
+			printRstFieldList (fh, node, head->indexType);
 		}
 	}
 }
@@ -319,7 +321,16 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	}
 
 	printTree (head, 1);
-	printRst (head);
+	FILE * fh = fopen (keyString (parentKey), "w");
+	if (!fh)
+	{
+		prettyCleanUp (head);
+		elektraFree (head);
+		ksDel (workingSet);
+		return -1;
+	}
+	printRst (fh, head);
+	fclose (fh);
 
 	prettyCleanUp (head);
 	elektraFree (head);

@@ -41,8 +41,8 @@ static void test_basics (void)
 
 static void test_basicKS (void)
 {
-	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_META, "description", "this is the mounted passwd file", KEY_META, "pretty",
-				  "list", KEY_META, "pretty/index", "name", KEY_END);
+	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_VALUE, "/tmp/testoutput.rst", KEY_META, "description",
+				  "this is the mounted passwd file", KEY_META, "pretty", "list", KEY_META, "pretty/index", "name", KEY_END);
 	KeySet * conf = ksNew (0, KS_END);
 	PLUGIN_OPEN ("prettyexport");
 	KeySet * ks =
