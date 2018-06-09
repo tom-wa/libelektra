@@ -16,6 +16,7 @@
 
 struct _PrettyHeadNode
 {
+    const Key * description;
 	Key * key;
 	KeySet * nodes;
 };
@@ -23,6 +24,7 @@ struct _PrettyHeadNode
 struct _PrettyIndexNode
 {
 	Key * key;
+    const Key * prettyType;
 	ssize_t requiredLength;
 	KeySet * ordered;
 	KeySet * unordered;
@@ -91,7 +93,7 @@ static Key * keyToFieldIndex (const Key * key, const Key * parent)
 static inline unsigned short isIndexNode (Key * key)
 {
 	if (!key) return 0;
-	if (keyGetMeta (key, "pretty/index"))
+	if (keyGetMeta (key, "pretty/index") && keyGetMeta (key, "pretty/type"))
 		return 1;
 	else
 		return 0;
@@ -107,15 +109,18 @@ static void prettyCleanUp (PrettyHeadNode * head)
 		ksDel (node->ordered);
 		ksDel (node->unordered);
 		keyDel (node->key);
+        keyDel ((Key *) node->prettyType);
 		elektraFree (node);
 	}
 	ksDel (head->nodes);
+    keyDel ((Key *) head->description);
 	keyDel (head->key);
 }
 
 static int addNodesToIndexNodes (const Key * key, KeySet * workingSet)
 {
 	PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (key);
+    node->prettyType = keyGetMeta (node->key, "pretty/type");
 	node->ordered = ksNew (0, KS_END);
 	node->unordered = ksNew (0, KS_END);
 	KeySet * cutKS = ksCut (workingSet, node->key);
@@ -163,6 +168,49 @@ static void printTree (PrettyHeadNode * head, unsigned short level ELEKTRA_UNUSE
 	}
 }
 
+static void printRstTable(KeySet * fields)
+{
+    fprintf (stderr, "DEBUG: printing table rst\n");
+}
+
+static void printRstList(KeySet * fields)
+{
+    fprintf (stderr, "DEBUG: printing list rst\n");
+    ksRewind (fields);
+    Key * cur;
+    while ((cur = ksNext (fields)) != NULL)
+    {
+	    fprintf (stderr, "  * %s ``%s``\n", keyName (cur), keyString (cur));
+    }
+}
+
+static void printRst(PrettyHeadNode * head)
+{
+    char description[300];
+    keyGetString(head->description, description, sizeof (description));
+    
+    fprintf (stderr, "DEBUG: printing rst\n");
+    fprintf (stderr, "%s\n", keyName (head->key));
+    fprintf (stderr, "%s\n", description);
+    
+    ksRewind (head->nodes);
+    Key * cur;
+    while ((cur = ksNext (head->nodes)) != NULL)
+    {
+        PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+        
+        char prettyType[20];
+        keyGetString (node->prettyType, prettyType, sizeof (prettyType));
+        
+        if (elektraStrCmp (prettyType, "table"))
+            printRstTable (node->ordered);
+
+        if (elektraStrCmp (prettyType, "list"))
+            printRstList (node->ordered);    
+    }
+}
+
+
 static Key * keyToIndexNodeKey (const Key * key, const Key * parent)
 {
 	PrettyIndexNode * node = elektraCalloc (sizeof (PrettyIndexNode));
@@ -176,13 +224,12 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 {
 	// set all keys
 	// this function is optional
-
-	const Key * prettyType = keyGetMeta (parentKey, "pretty");
-	if (!prettyType) return 0;
+    const Key * description = keyGetMeta (parentKey, "description");
 
 	PrettyHeadNode * head = elektraCalloc (sizeof (PrettyHeadNode));
 	head->key = keyDup (parentKey);
 	head->nodes = ksNew (ksGetSize (returned), KS_END);
+    head->description = description;
 
 	KeySet * workingSet = ksDup (returned);
 	ksRewind (workingSet);
@@ -203,6 +250,7 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	}
 
 	printTree (head, 1);
+    printRst (head);
 
 	prettyCleanUp (head);
 	elektraFree (head);
