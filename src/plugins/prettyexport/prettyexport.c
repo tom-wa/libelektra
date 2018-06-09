@@ -305,7 +305,7 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	else
 	{
 		KeySet * config = elektraPluginGetConfig (handle);
-		Key * prettyType = ksLookupByName (config, "pretty", KDB_O_NONE);
+		Key * prettyType = ksLookupByName (config, "/pretty", KDB_O_NONE);
 		if (prettyType)
 		{
 			head->prettyType = getPrettyType (keyString (prettyType));
