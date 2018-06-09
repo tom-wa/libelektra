@@ -9,6 +9,7 @@
 
 #include "prettyexport.h"
 
+#include <kdb.h>
 #include <kdbease.h> // elektraArrayValidateName, elektraKeyGetRelativeName
 #include <kdbhelper.h>
 #include <stdio.h>
@@ -138,7 +139,6 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-
 		if (head->prettyType == PRETTY_TYPE_TABLE)
 		{
 			printRstTable (fh, node, head->indexType);
@@ -205,15 +205,14 @@ static void prettyCleanUp (PrettyHeadNode * head)
 	keyDel (head->key);
 }
 
-static inline PrettyType getPrettyType (const Key * key)
+static inline PrettyType getPrettyType (const char * typeStr)
 {
-	const Key * meta = keyGetMeta (key, "pretty");
-	if (!meta) return PRETTY_TYPE_INVALID;
-	if (!elektraStrCmp (keyString (meta), "list"))
+	if (!typeStr) return PRETTY_TYPE_INVALID;
+	if (!elektraStrCmp (typeStr, "list"))
 		return PRETTY_TYPE_LIST;
-	else if (!elektraStrCmp (keyString (meta), "table"))
+	else if (!elektraStrCmp (typeStr, "table"))
 		return PRETTY_TYPE_TABLE;
-	else if (!elektraStrCmp (keyString (meta), "fieldlist"))
+	else if (!elektraStrCmp (typeStr, "fieldlist"))
 		return PRETTY_TYPE_FIELDLIST;
 	else
 		return PRETTY_TYPE_INVALID;
@@ -299,7 +298,23 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	PrettyHeadNode * head = elektraCalloc (sizeof (PrettyHeadNode));
 	head->key = keyDup (parentKey);
 	head->nodes = ksNew (ksGetSize (returned), KS_END);
-	head->prettyType = getPrettyType (parentKey);
+	if (keyGetMeta (parentKey, "pretty"))
+	{
+		head->prettyType = getPrettyType (keyString (keyGetMeta (parentKey, "pretty")));
+	}
+	else
+	{
+		KeySet * config = elektraPluginGetConfig (handle);
+		Key * prettyType = ksLookupByName (config, "pretty", KDB_O_NONE);
+		if (prettyType)
+		{
+			head->prettyType = getPrettyType (keyString (prettyType));
+		}
+		else
+		{
+			head->prettyType = PRETTY_TYPE_LIST;
+		}
+	}
 	head->indexType = getPrettyIndexType (parentKey);
 	KeySet * workingSet = ksDup (returned);
 	ksRewind (workingSet);
