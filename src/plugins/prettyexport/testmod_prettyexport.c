@@ -42,18 +42,18 @@ static void test_basics (void)
 static void test_basicKS (void)
 {
 	Key * parentKey = keyNew ("user/tests/prettyexport", KEY_META, "description", "this is the mounted passwd file", KEY_META, "pretty",
-				  "list", KEY_END);
+				  "list", KEY_META, "pretty/index", "name", KEY_END);
 	KeySet * conf = ksNew (0, KS_END);
 	PLUGIN_OPEN ("prettyexport");
 	KeySet * ks =
-		ksNew (30, keyNew ("user/tests/prettyexport/thomas", KEY_META, "pretty/index", "name", KEY_END),
+		ksNew (30, keyNew ("user/tests/prettyexport/thomas", KEY_META, "pretty/index", "", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/gecos", KEY_VALUE, "Thomas Waser", KEY_META, "pretty/field", "#1", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/uid", KEY_VALUE, "1000", KEY_META, "pretty/field", "#2", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/gid", KEY_VALUE, "1000", KEY_META, "pretty/field", "#3", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/shell", KEY_VALUE, "/usr/bin/zsh", KEY_META, "pretty/field", "#4", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/home", KEY_VALUE, "/home/thomas", KEY_META, "pretty/field", "#5", KEY_END),
 		       keyNew ("user/tests/prettyexport/thomas/passwd", KEY_VALUE, "x", KEY_END),
-		       keyNew ("user/tests/prettyexport/tgi", KEY_META, "pretty/index", "name", KEY_END),
+		       keyNew ("user/tests/prettyexport/tgi", KEY_META, "pretty/index", "", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/gecos", KEY_VALUE, "TGI Staff", KEY_META, "pretty/field", "#1", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/uid", KEY_VALUE, "1003", KEY_META, "pretty/field", "#2", KEY_END),
 		       keyNew ("user/tests/prettyexport/tgi/gid", KEY_VALUE, "1003", KEY_META, "pretty/field", "#3", KEY_END),
