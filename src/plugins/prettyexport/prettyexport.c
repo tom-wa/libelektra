@@ -73,6 +73,22 @@ static void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_
 	fputs ("+\n", fh);
 }
 
+enum _PrettyStyle {
+	PRETTY_STYLE_NORMAL = 0 << 0,
+	PRETTY_STYLE_BOLD = 1 << 0,
+	PRETTY_STYLE_ITALICS = 1 << 1,
+	PRETTY_STYLE_MONO = 1 << 2,
+};
+typedef enum _PrettyStyle PrettyStyle;
+
+struct _TableCell
+{
+	PrettyStyle style;
+	const char * value;
+};
+
+typedef struct _TableCell TableCell;
+
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
@@ -92,8 +108,14 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
 
 	fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
-	const char * table[tableLength + 1][tableHeight];
-	memset (table, 0, sizeof (table));
+	TableCell * table[tableLength][tableHeight];
+	for (int i = 0; i < tableLength; ++i)
+	{
+		for (int j = 0; j < tableHeight; ++j)
+		{
+			table[i][j] = elektraCalloc (sizeof (TableCell));
+		}
+	}
 
 	Key * cur;
 	ssize_t line = 0;
@@ -103,11 +125,11 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
 		if (indexType == PRETTY_INDEX_NAME)
 		{
-			table[0][line] = keyBaseName (node->key);
+			(table[0][line])->value = keyBaseName (node->key);
 		}
 		else
 		{
-			table[0][line] = keyString (node->key);
+			(table[0][line])->value = keyString (node->key);
 		}
 		Key * cur2;
 		ssize_t col = 0;
@@ -115,7 +137,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
 			fprintf (stderr, "DEBUG: table[%zd][%zd] = %s:(%s)\n", col, line, keyName (cur2), keyString (cur2));
-			table[col + 1][line] = keyString (cur2);
+			(table[col + 1][line])->value = keyString (cur2);
 			++col;
 		}
 		++line;
@@ -141,12 +163,19 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%-*s|", (int) colLengths[j], table[j][line]);
+				fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
 			}
 			fputc ('\n', fh);
 			++line;
 		}
 		printSeparatorLine (fh, '-', numCols, colLengths);
+	}
+	for (int i = 0; i < tableLength; ++i)
+	{
+		for (int j = 0; j < tableHeight; ++j)
+		{
+			elektraFree (table[i][j]);
+		}
 	}
 }
 
