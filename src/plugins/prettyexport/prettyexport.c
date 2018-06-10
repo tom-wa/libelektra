@@ -8,44 +8,13 @@
  */
 
 #include "prettyexport.h"
+#include "rsttable.h"
 
 #include <kdb.h>
 #include <kdbease.h> // elektraArrayValidateName, elektraKeyGetRelativeName
 #include <kdbhelper.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-enum _PrettyType {
-	PRETTY_TYPE_INVALID,
-	PRETTY_TYPE_LIST,
-	PRETTY_TYPE_TABLE,
-	PRETTY_TYPE_FIELDLIST,
-};
-enum _PrettyIndexType {
-	PRETTY_INDEX_NAME,
-	PRETTY_INDEX_VALUE,
-};
-typedef enum _PrettyType PrettyType;
-typedef enum _PrettyIndexType PrettyIndexType;
-
-struct _PrettyHeadNode
-{
-	PrettyType prettyType;
-	PrettyIndexType indexType;
-	Key * key;
-	KeySet * nodes;
-};
-
-struct _PrettyIndexNode
-{
-	Key * key;
-	ssize_t requiredLength;
-	KeySet * ordered;
-	KeySet * unordered;
-};
-
-typedef struct _PrettyIndexNode PrettyIndexNode;
-typedef struct _PrettyHeadNode PrettyHeadNode;
 
 int elektraPrettyexportOpen (Plugin * handle ELEKTRA_UNUSED, Key * errorKey ELEKTRA_UNUSED)
 {
@@ -88,15 +57,30 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
 }
 
-
-static void printRstTable (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
+static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
+
+    ssize_t numRows = ksGetSize (head->nodes);
+    ssize_t rowHeights[numRows];
+
+    PrettyIndexNode * firstIndexNode = *(PrettyIndexNode **) keyValue (ksHead (head->nodes)); //TODO: IndexNodes with differend sizes
+    ssize_t numCols = ksGetSize (firstIndexNode->ordered); 
+    ssize_t colLengths[numCols];
+
+    calcSizes(head, rowHeights, numRows, colLengths, numCols);
+
+    ssize_t tableLength = calcTableLength(colLengths, numCols);
+    ssize_t tableHeight = calcTableHeight(rowHeights, numRows);
+
+    char * table[tableLength][tableHeight];
 }
+
 
 static void printRstFieldList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
 }
+
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing list rst\n");
@@ -133,17 +117,18 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 	{
 		fprintf (fh, "*%s*\n\n", keyString (keyGetMeta (head->key, "description")));
 	}
+		
+    if (head->prettyType == PRETTY_TYPE_TABLE)
+	{
+	    printRstTable (fh, head, head->indexType);
+    }
 
 	ksRewind (head->nodes);
 	Key * cur;
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		if (head->prettyType == PRETTY_TYPE_TABLE)
-		{
-			printRstTable (fh, node, head->indexType);
-		}
-		else if (head->prettyType == PRETTY_TYPE_LIST)
+		if (head->prettyType == PRETTY_TYPE_LIST)
 		{
 			printRstList (fh, node, head->indexType);
 		}
