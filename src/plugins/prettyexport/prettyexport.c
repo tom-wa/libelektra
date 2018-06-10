@@ -57,6 +57,19 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
 }
 
+static void printSeparatorLine (FILE * fh, ssize_t numCols, ssize_t colLengths[])
+{
+	for (ssize_t j = 0; j < numCols; ++j)
+	{
+		fputc ('+', fh);
+		for (ssize_t j2 = 0; j2 < colLengths[j]; ++j2)
+		{
+			fputc ('-', fh);
+		}
+		fputs ("+\n", fh);
+	}
+}
+
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
@@ -74,6 +87,9 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
 
 	char * table[tableLength][tableHeight];
+
+	printSeparatorLine (fh, numCols, colLengths);
+	ssize_t line = 0;
 	for (ssize_t i = 0; i < numRows; ++i)
 	{
 		for (ssize_t i2 = 0; i2 < rowHeights[i]; ++i)
@@ -81,20 +97,14 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%*s|", (int) colLengths[j], table[j][i2]);
+				fprintf (fh, "%*s|", (int) colLengths[j], table[j][line]);
 			}
 			fputc ('\n', fh);
+			++line;
 		}
-		for (ssize_t j = 0; j < numCols; ++j)
-		{
-			fputc ('+', fh);
-			for (ssize_t j2 = 0; j2 < colLengths[j]; ++j2)
-			{
-				fputc ('-', fh);
-			}
-			fputs ("+\n", fh);
-		}
+		printSeparatorLine (fh, numCols, colLengths);
 	}
+	printSeparatorLine (fh, numCols, colLengths);
 }
 
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
