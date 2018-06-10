@@ -60,14 +60,14 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 
 
 // will optimize this shit later
-static void printSeparatorLine (FILE * fh, ssize_t numCols, ssize_t colLengths[])
+static void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_t colLengths[])
 {
 	for (ssize_t j = 0; j < numCols; ++j)
 	{
 		fputc ('+', fh);
 		for (ssize_t j2 = 0; j2 < colLengths[j]; ++j2)
 		{
-			fputc ('-', fh);
+			fputc (c, fh);
 		}
 	}
 	fputs ("+\n", fh);
@@ -92,7 +92,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
 
 	fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
-	char * table[tableLength][tableHeight];
+	const char * table[tableLength + 1][tableHeight];
 	memset (table, 0, sizeof (table));
 
 	Key * cur;
@@ -101,19 +101,38 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		if (indexType == PRETTY_INDEX_NAME)
+		{
+			table[0][line] = keyBaseName (node->key);
+		}
+		else
+		{
+			table[0][line] = keyString (node->key);
+		}
 		Key * cur2;
 		ssize_t col = 0;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
 			fprintf (stderr, "DEBUG: table[%zd][%zd] = %s:(%s)\n", col, line, keyName (cur2), keyString (cur2));
-			table[col][line] = (char *) keyString (cur2);
+			table[col + 1][line] = keyString (cur2);
 			++col;
 		}
 		++line;
 	}
 
-	printSeparatorLine (fh, numCols, colLengths);
+	printSeparatorLine (fh, '-', numCols, colLengths);
+	ksRewind (firstIndexNode->ordered);
+	fputc ('|', fh);
+	int whatever = 0;
+	while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
+	{
+		fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
+		++whatever;
+	}
+	fputc ('\n', fh);
+	printSeparatorLine (fh, '=', numCols, colLengths);
+
 	line = 0;
 	for (ssize_t i = 0; i < numRows; ++i)
 	{
@@ -122,12 +141,12 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%-*s|", (int) colLengths[j], table[j][line]);
+				fprintf (fh, "%-*s|", (int) colLengths[j], table[j + 1][line]);
 			}
 			fputc ('\n', fh);
 			++line;
 		}
-		printSeparatorLine (fh, numCols, colLengths);
+		printSeparatorLine (fh, '-', numCols, colLengths);
 	}
 }
 
