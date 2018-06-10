@@ -22,8 +22,7 @@ static ssize_t calcTableCellLength (Key * key)
 
 static ssize_t calcTableCellHeight (Key * key)
 {
-	Key * dup = keyDup (key);
-	const char * value = keyString (dup);
+	const char * value = keyString (key);
 
 	ssize_t numberOfLines = 1;
 	while (*value != '\0')

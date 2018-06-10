@@ -57,6 +57,8 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
 }
 
+
+// will optimize this shit later
 static void printSeparatorLine (FILE * fh, ssize_t numCols, ssize_t colLengths[])
 {
 	for (ssize_t j = 0; j < numCols; ++j)
@@ -66,8 +68,8 @@ static void printSeparatorLine (FILE * fh, ssize_t numCols, ssize_t colLengths[]
 		{
 			fputc ('-', fh);
 		}
-		fputs ("+\n", fh);
 	}
+	fputs ("+\n", fh);
 }
 
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
@@ -76,10 +78,12 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 
 	ssize_t numRows = ksGetSize (head->nodes);
 	ssize_t rowHeights[numRows];
+	memset (rowHeights, 0, sizeof (rowHeights));
 
 	PrettyIndexNode * firstIndexNode = *(PrettyIndexNode **) keyValue (ksHead (head->nodes)); // TODO: IndexNodes with differend sizes
 	ssize_t numCols = ksGetSize (firstIndexNode->ordered);
 	ssize_t colLengths[numCols];
+	memset (colLengths, 0, sizeof (colLengths));
 
 	calcSizes (head, rowHeights, numRows, colLengths, numCols);
 
