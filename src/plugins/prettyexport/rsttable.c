@@ -34,17 +34,28 @@ static ssize_t calcTableCellHeight (Key * key)
 	return numberOfLines;
 }
 
-void calcSizes (PrettyHeadNode * head, ssize_t rowHeights[], ssize_t numRows, ssize_t colLengths[], ssize_t numCols)
+void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t rowHeights[], ssize_t numRows, ssize_t colLengths[],
+		ssize_t numCols)
 {
 	int rowCount = 0;
-	int colCount = 0;
+	int colCount = 1;
 
 	ksRewind (head->nodes);
 	Key * cur;
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		ssize_t indexCellLength = 0;
+		if (indexType == PRETTY_INDEX_NAME)
+		{
+			indexCellLength = elektraStrLen (keyBaseName (node->key));
+		}
+		else
+		{
+			indexCellLength = keyGetValueSize (node->key);
+		}
 
+		if (colLengths[0] < indexCellLength) colLengths[0] = indexCellLength;
 		ksRewind (node->ordered);
 		Key * cur2;
 		while ((cur2 = ksNext (node->ordered)) != NULL)
@@ -60,7 +71,7 @@ void calcSizes (PrettyHeadNode * head, ssize_t rowHeights[], ssize_t numRows, ss
 			// TODO check size of colCout < numCols
 		}
 
-		colCount = 0;
+		colCount = 1;
 		rowCount++;
 
 		// TODO check size rowCount < numRows

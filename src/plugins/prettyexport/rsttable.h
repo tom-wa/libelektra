@@ -8,7 +8,8 @@
  */
 #include "prettyexport.h"
 
-void calcSizes (PrettyHeadNode * head, ssize_t rowHeights[], ssize_t numRows, ssize_t colLengths[], ssize_t numCols);
+void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t rowHeights[], ssize_t numRows, ssize_t colLengths[],
+		ssize_t numCols);
 
 ssize_t calcTableLength (ssize_t colLengths[], ssize_t numCols);
 

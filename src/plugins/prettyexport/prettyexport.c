@@ -82,11 +82,11 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	memset (rowHeights, 0, sizeof (rowHeights));
 
 	PrettyIndexNode * firstIndexNode = *(PrettyIndexNode **) keyValue (ksHead (head->nodes)); // TODO: IndexNodes with differend sizes
-	ssize_t numCols = ksGetSize (firstIndexNode->ordered);
+	ssize_t numCols = ksGetSize (firstIndexNode->ordered) + 1;
 	ssize_t colLengths[numCols];
 	memset (colLengths, 0, sizeof (colLengths));
 
-	calcSizes (head, rowHeights, numRows, colLengths, numCols);
+	calcSizes (head, indexType, rowHeights, numRows, colLengths, numCols);
 
 	ssize_t tableLength = calcTableLength (colLengths, numCols);
 	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
@@ -123,8 +123,8 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 
 	printSeparatorLine (fh, '-', numCols, colLengths);
 	ksRewind (firstIndexNode->ordered);
-	fputc ('|', fh);
-	int whatever = 0;
+	fprintf (fh, "|%*s|", (int) colLengths[0], " ");
+	int whatever = 1;
 	while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
 	{
 		fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
@@ -141,7 +141,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%-*s|", (int) colLengths[j], table[j + 1][line]);
+				fprintf (fh, "%-*s|", (int) colLengths[j], table[j][line]);
 			}
 			fputc ('\n', fh);
 			++line;
