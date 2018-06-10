@@ -61,24 +61,40 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
 
-    ssize_t numRows = ksGetSize (head->nodes);
-    ssize_t rowHeights[numRows];
+	ssize_t numRows = ksGetSize (head->nodes);
+	ssize_t rowHeights[numRows];
 
-    PrettyIndexNode * firstIndexNode = *(PrettyIndexNode **) keyValue (ksHead (head->nodes)); //TODO: IndexNodes with differend sizes
-    ssize_t numCols = ksGetSize (firstIndexNode->ordered); 
-    ssize_t colLengths[numCols];
+	PrettyIndexNode * firstIndexNode = *(PrettyIndexNode **) keyValue (ksHead (head->nodes)); // TODO: IndexNodes with differend sizes
+	ssize_t numCols = ksGetSize (firstIndexNode->ordered);
+	ssize_t colLengths[numCols];
 
-    calcSizes(head, rowHeights, numRows, colLengths, numCols);
+	calcSizes (head, rowHeights, numRows, colLengths, numCols);
 
-    ssize_t tableLength = calcTableLength(colLengths, numCols);
-    ssize_t tableHeight = calcTableHeight(rowHeights, numRows);
+	ssize_t tableLength = calcTableLength (colLengths, numCols);
+	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
 
-    char * table[tableLength][tableHeight];
-}
-
-
-static void printRstFieldList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
-{
+	char * table[tableLength][tableHeight];
+	for (ssize_t i = 0; i < numRows; ++i)
+	{
+		for (ssize_t i2 = 0; i2 < rowHeights[i]; ++i)
+		{
+			fputc ('|', fh);
+			for (ssize_t j = 0; j < numCols; ++j)
+			{
+				fprintf (fh, "%*s|", (int) colLengths[j], table[j][i2]);
+			}
+			fputc ('\n', fh);
+		}
+		for (ssize_t j = 0; j < numCols; ++j)
+		{
+			fputc ('+', fh);
+			for (ssize_t j2 = 0; j2 < colLengths[j]; ++j2)
+			{
+				fputc ('-', fh);
+			}
+			fputs ("+\n", fh);
+		}
+	}
 }
 
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
@@ -117,11 +133,11 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 	{
 		fprintf (fh, "*%s*\n\n", keyString (keyGetMeta (head->key, "description")));
 	}
-		
-    if (head->prettyType == PRETTY_TYPE_TABLE)
+
+	if (head->prettyType == PRETTY_TYPE_TABLE)
 	{
-	    printRstTable (fh, head, head->indexType);
-    }
+		printRstTable (fh, head, head->indexType);
+	}
 
 	ksRewind (head->nodes);
 	Key * cur;
@@ -131,10 +147,6 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 		if (head->prettyType == PRETTY_TYPE_LIST)
 		{
 			printRstList (fh, node, head->indexType);
-		}
-		else if (head->prettyType == PRETTY_TYPE_FIELDLIST)
-		{
-			printRstFieldList (fh, node, head->indexType);
 		}
 	}
 }
@@ -197,8 +209,6 @@ static inline PrettyType getPrettyType (const char * typeStr)
 		return PRETTY_TYPE_LIST;
 	else if (!elektraStrCmp (typeStr, "table"))
 		return PRETTY_TYPE_TABLE;
-	else if (!elektraStrCmp (typeStr, "fieldlist"))
-		return PRETTY_TYPE_FIELDLIST;
 	else
 		return PRETTY_TYPE_INVALID;
 }
