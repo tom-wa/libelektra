@@ -122,7 +122,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%*s|", (int) colLengths[j], table[j][line]);
+				fprintf (fh, "%-*s|", (int) colLengths[j], table[j][line]);
 			}
 			fputc ('\n', fh);
 			++line;
