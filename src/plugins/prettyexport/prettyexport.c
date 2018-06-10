@@ -15,6 +15,7 @@
 #include <kdbhelper.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int elektraPrettyexportOpen (Plugin * handle ELEKTRA_UNUSED, Key * errorKey ELEKTRA_UNUSED)
 {
@@ -90,13 +91,33 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t tableLength = calcTableLength (colLengths, numCols);
 	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
 
+	fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
 	char * table[tableLength][tableHeight];
+	memset (table, 0, sizeof (table));
+
+	Key * cur;
+	ssize_t line = 0;
+	ksRewind (head->nodes);
+	while ((cur = ksNext (head->nodes)) != NULL)
+	{
+		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+		Key * cur2;
+		ssize_t col = 0;
+		ksRewind (node->ordered);
+		while ((cur2 = ksNext (node->ordered)) != NULL)
+		{
+			fprintf (stderr, "DEBUG: table[%zd][%zd] = %s:(%s)\n", col, line, keyName (cur2), keyString (cur2));
+			table[col][line] = (char *) keyString (cur2);
+			++col;
+		}
+		++line;
+	}
 
 	printSeparatorLine (fh, numCols, colLengths);
-	ssize_t line = 0;
+	line = 0;
 	for (ssize_t i = 0; i < numRows; ++i)
 	{
-		for (ssize_t i2 = 0; i2 < rowHeights[i]; ++i)
+		for (ssize_t i2 = 0; i2 < rowHeights[i]; ++i2)
 		{
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
@@ -108,7 +129,6 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 		}
 		printSeparatorLine (fh, numCols, colLengths);
 	}
-	printSeparatorLine (fh, numCols, colLengths);
 }
 
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
@@ -179,6 +199,7 @@ static Key * keyToFieldIndex (const Key * key, const Key * parent)
 		return NULL;
 	}
 	keyAddName (newKey, elektraKeyGetRelativeName (key, parent));
+	keyCopyAllMeta (newKey, key);
 	return newKey;
 }
 
