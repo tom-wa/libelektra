@@ -22,4 +22,36 @@ int elektraPrettyexportCheckConfig (Key * errorKey, KeySet * conf);
 
 Plugin * ELEKTRA_PLUGIN_EXPORT (prettyexport);
 
+enum _PrettyType {
+	PRETTY_TYPE_INVALID,
+	PRETTY_TYPE_LIST,
+	PRETTY_TYPE_TABLE,
+	PRETTY_TYPE_FIELDLIST,
+};
+enum _PrettyIndexType {
+	PRETTY_INDEX_NAME,
+	PRETTY_INDEX_VALUE,
+};
+typedef enum _PrettyType PrettyType;
+typedef enum _PrettyIndexType PrettyIndexType;
+
+struct _PrettyHeadNode
+{
+	PrettyType prettyType;
+	PrettyIndexType indexType;
+	Key * key;
+	KeySet * nodes;
+};
+
+struct _PrettyIndexNode
+{
+	Key * key;
+	ssize_t requiredLength;
+	KeySet * ordered;
+	KeySet * unordered;
+};
+
+typedef struct _PrettyIndexNode PrettyIndexNode;
+typedef struct _PrettyHeadNode PrettyHeadNode;
+
 #endif
