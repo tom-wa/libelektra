@@ -32,10 +32,10 @@ enum _PrettyIndexType {
 	PRETTY_INDEX_VALUE,
 };
 enum _PrettyStyle {
-	PRETTY_STYLE_NORMAL = 0 << 0,
-	PRETTY_STYLE_BOLD = 1 << 0,
-	PRETTY_STYLE_ITALICS = 1 << 1,
-	PRETTY_STYLE_MONO = 1 << 2,
+	PRETTY_STYLE_NORMAL = 0,
+	PRETTY_STYLE_BOLD,
+	PRETTY_STYLE_ITALICS,
+	PRETTY_STYLE_MONO,
 };
 
 typedef enum _PrettyType PrettyType;

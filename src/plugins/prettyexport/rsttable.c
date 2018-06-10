@@ -18,9 +18,12 @@
 static ssize_t calcTableCellLength (Key * key)
 {
 	ssize_t len = keyGetValueSize (key);
-	if (keyGetMeta (key, "pretty/bold")) len += 4;
-	if (keyGetMeta (key, "pretty/italics")) len += 2;
-	if (keyGetMeta (key, "pretty/mono")) len += 4;
+	if (keyGetMeta (key, "pretty/bold"))
+		len += 4;
+	else if (keyGetMeta (key, "pretty/italics"))
+		len += 2;
+	else if (keyGetMeta (key, "pretty/mono"))
+		len += 4;
 	return len;
 }
 
@@ -59,9 +62,12 @@ void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t rowHei
 			indexCellLength = keyGetValueSize (node->key);
 		}
 
-		if (keyGetMeta (node->key, "pretty/bold")) indexCellLength += 4;
-		if (keyGetMeta (node->key, "pretty/italics")) indexCellLength += 2;
-		if (keyGetMeta (node->key, "pretty/mono")) indexCellLength += 4;
+		if (keyGetMeta (node->key, "pretty/bold"))
+			indexCellLength += 4;
+		else if (keyGetMeta (node->key, "pretty/italics"))
+			indexCellLength += 2;
+		else if (keyGetMeta (node->key, "pretty/mono"))
+			indexCellLength += 4;
 
 
 		if (colLengths[0] < indexCellLength) colLengths[0] = indexCellLength;
