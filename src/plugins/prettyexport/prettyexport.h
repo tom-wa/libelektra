@@ -31,8 +31,16 @@ enum _PrettyIndexType {
 	PRETTY_INDEX_NAME,
 	PRETTY_INDEX_VALUE,
 };
+enum _PrettyStyle {
+	PRETTY_STYLE_NORMAL = 0 << 0,
+	PRETTY_STYLE_BOLD = 1 << 0,
+	PRETTY_STYLE_ITALICS = 1 << 1,
+	PRETTY_STYLE_MONO = 1 << 2,
+};
+
 typedef enum _PrettyType PrettyType;
 typedef enum _PrettyIndexType PrettyIndexType;
+typedef enum _PrettyStyle PrettyStyle;
 
 struct _PrettyHeadNode
 {
@@ -50,7 +58,14 @@ struct _PrettyIndexNode
 	KeySet * unordered;
 };
 
+struct _TableCell
+{
+	PrettyStyle style;
+	const char * value;
+};
+
 typedef struct _PrettyIndexNode PrettyIndexNode;
 typedef struct _PrettyHeadNode PrettyHeadNode;
+typedef struct _TableCell TableCell;
 
 #endif

@@ -73,21 +73,6 @@ static void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_
 	fputs ("+\n", fh);
 }
 
-enum _PrettyStyle {
-	PRETTY_STYLE_NORMAL = 0 << 0,
-	PRETTY_STYLE_BOLD = 1 << 0,
-	PRETTY_STYLE_ITALICS = 1 << 1,
-	PRETTY_STYLE_MONO = 1 << 2,
-};
-typedef enum _PrettyStyle PrettyStyle;
-
-struct _TableCell
-{
-	PrettyStyle style;
-	const char * value;
-};
-
-typedef struct _TableCell TableCell;
 
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
