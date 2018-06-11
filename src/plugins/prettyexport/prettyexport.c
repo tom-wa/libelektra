@@ -60,7 +60,7 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
-	fprintf (stderr, "DEBUG: printing table rst\n");
+	// fprintf (stderr, "DEBUG: printing table rst\n");
 
 	ssize_t numRows = ksGetSize (head->nodes);
 	ssize_t rowHeights[numRows];
@@ -76,21 +76,21 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t tableLength = calcTableLength (numCols, colLengths);
 	ssize_t tableHeight = calcTableHeight (numRows, rowHeights);
 
-	fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
-    TableCell * table [tableLength][tableHeight];
-	
-    callocTable(tableLength, tableHeight, table);
-    
-    fillTable(head, indexType, tableLength, tableHeight, table, numRows, rowHeights);
+	// fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
+	TableCell * table[tableLength][tableHeight];
 
-    printTable(fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
+	callocTable (tableLength, tableHeight, table);
 
-    freeTable(tableLength, tableHeight, table);
+	fillTable (head, indexType, tableLength, tableHeight, table, numRows, rowHeights);
+
+	printTable (fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
+
+	freeTable (tableLength, tableHeight, table);
 }
 
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)
 {
-	fprintf (stderr, "DEBUG: printing list rst\n");
+	// fprintf (stderr, "DEBUG: printing list rst\n");
 	if (indexType == PRETTY_INDEX_NAME)
 	{
 		fprintf (fh, "%s\n", keyBaseName (node->key));
@@ -118,7 +118,7 @@ static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType ind
 
 static void printRst (FILE * fh, PrettyHeadNode * head)
 {
-	fprintf (stderr, "DEBUG: printing rst\n");
+	// fprintf (stderr, "DEBUG: printing rst\n");
 	fprintf (fh, "**%s**\n\n", keyName (head->key));
 	if (keyGetMeta (head->key, "description"))
 	{
@@ -255,23 +255,23 @@ static int addNodesToIndexNode (const Key * key, KeySet * workingSet)
 
 static void printTree (PrettyHeadNode * head, unsigned short level ELEKTRA_UNUSED)
 {
-	fprintf (stderr, "DEBUG: pretting tree\n");
+	// fprintf (stderr, "DEBUG: pretting tree\n");
 	ksRewind (head->nodes);
 	Key * cur;
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLength);
+		// fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLength);
 		Key * cur2;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
-			fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
 		}
 		ksRewind (node->unordered);
 		while ((cur2 = ksNext (node->unordered)) != NULL)
 		{
-			fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
 		}
 	}
 }
@@ -310,7 +310,7 @@ int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	{
 		if (!elektraStrCmp (keyName (cur), keyName (parentKey))) continue;
 		if (!isIndexNode (cur)) continue;
-		fprintf (stderr, "DEBUG: found index node %s\n", keyName (cur));
+		// fprintf (stderr, "DEBUG: found index node %s\n", keyName (cur));
 		Key * nodeKey = keyToIndexNodeKey (cur, head->key);
 		ksAppendKey (head->nodes, nodeKey);
 	}
