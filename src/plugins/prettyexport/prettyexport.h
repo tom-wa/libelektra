@@ -31,16 +31,8 @@ enum _PrettyIndexType {
 	PRETTY_INDEX_NAME,
 	PRETTY_INDEX_VALUE,
 };
-enum _PrettyStyle {
-	PRETTY_STYLE_NORMAL = 0,
-	PRETTY_STYLE_BOLD,
-	PRETTY_STYLE_ITALICS,
-	PRETTY_STYLE_MONO,
-};
-
 typedef enum _PrettyType PrettyType;
 typedef enum _PrettyIndexType PrettyIndexType;
-typedef enum _PrettyStyle PrettyStyle;
 
 struct _PrettyHeadNode
 {

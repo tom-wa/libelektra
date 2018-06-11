@@ -87,7 +87,6 @@ void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t numRow
 		else if (keyGetMeta (node->key, "pretty/mono"))
 			indexCellLength += 4;
 
-
 		if (colLengths[0] < indexCellLength) colLengths[0] = indexCellLength;
 		ksRewind (node->ordered);
 		Key * cur2;
@@ -160,16 +159,30 @@ void fillTable (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t tableL
 	{
 		ssize_t col = 0;
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+
+		PrettyStyle style;
+		if (keyGetMeta (node->key, "pretty/bold"))
+			style = PRETTY_STYLE_BOLD;
+		else if (keyGetMeta (node->key, "pretty/italics"))
+			style = PRETTY_STYLE_ITALICS;
+		else if (keyGetMeta (node->key, "pretty/mono"))
+			style = PRETTY_STYLE_MONO;
+		else
+			style = PRETTY_STYLE_NORMAL;
+		(table[col][row])->style = style;
+
 		if (indexType == PRETTY_INDEX_NAME)
 		{
 			(table[col][row])->value = elektraStrNDup (keyBaseName (node->key), elektraStrLen (keyBaseName (node->key)));
-			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyBaseName (node->key));
+
+			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyBaseName
+			// (node->key));
 		}
 		else
 		{
 			(table[col][row])->value = elektraStrNDup (keyString (node->key), keyGetValueSize (node->key));
-			;
-			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyString (node->key));
+			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyString
+			// (node->key));
 		}
 		++col;
 
@@ -185,8 +198,20 @@ void fillTable (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t tableL
 			for (const char * line = strtok (value, "\n"); line != NULL; line = strtok (NULL, "\n"))
 			{
 				char * lineAlloc = elektraStrNDup (line, elektraStrLen (line));
-				// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row + currentRowHeight, lineAlloc);
+				// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row +
+				// currentRowHeight, lineAlloc);
 				(table[col][row + currentRowHeight])->value = lineAlloc;
+
+				if (keyGetMeta (cur2, "pretty/bold"))
+					style = PRETTY_STYLE_BOLD;
+				else if (keyGetMeta (cur2, "pretty/italics"))
+					style = PRETTY_STYLE_ITALICS;
+				else if (keyGetMeta (cur2, "pretty/mono"))
+					style = PRETTY_STYLE_MONO;
+				else
+					style = PRETTY_STYLE_NORMAL;
+				(table[col][row + currentRowHeight])->style = style;
+
 				++currentRowHeight;
 			}
 			++col;
@@ -221,7 +246,14 @@ void printTable (FILE * fh, PrettyIndexNode * firstIndexNode, ssize_t tableLengt
 	Key * cur;
 	while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
 	{
-		fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
+		if (keyGetMeta (cur, "pretty/bold"))
+			fprintf (fh, "**%-*s**|", (int) colLengths[whatever] - 4, keyBaseName (cur));
+		else if (keyGetMeta (cur, "pretty/italics"))
+			fprintf (fh, "*%-*s*|", (int) colLengths[whatever] - 2, keyBaseName (cur));
+		else if (keyGetMeta (cur, "pretty/mono"))
+			fprintf (fh, "``%-*s``|", (int) colLengths[whatever] - 4, keyBaseName (cur));
+		else
+			fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
 		++whatever;
 	}
 	fputc ('\n', fh);
@@ -235,8 +267,18 @@ void printTable (FILE * fh, PrettyIndexNode * firstIndexNode, ssize_t tableLengt
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				if ((table[j][line])->value)
-					fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
+				TableCell * cell = table[j][line];
+				if (cell->value)
+				{
+					if (cell->style == PRETTY_STYLE_NORMAL)
+						fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
+					if (cell->style == PRETTY_STYLE_BOLD)
+						fprintf (fh, "**%-*s**|", (int) colLengths[j] - 4, (table[j][line])->value);
+					if (cell->style == PRETTY_STYLE_ITALICS)
+						fprintf (fh, "*%-*s*|", (int) colLengths[j] - 2, (table[j][line])->value);
+					if (cell->style == PRETTY_STYLE_MONO)
+						fprintf (fh, "``%-*s``|", (int) colLengths[j] - 4, (table[j][line])->value);
+				}
 				else
 					fprintf (fh, "%-*c|", (int) colLengths[j], ' ');
 			}

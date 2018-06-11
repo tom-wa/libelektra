@@ -261,21 +261,23 @@ static void printTree (PrettyHeadNode * head, unsigned short level ELEKTRA_UNUSE
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		// fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName (node->key), node->requiredLength);
+		// fprintf (stderr, "DEBUG: INDEX: %s\t required Lenght: %zu\n", keyName
+		// (node->key), node->requiredLength);
 		Key * cur2;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
-			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString
+			// (cur2));
 		}
 		ksRewind (node->unordered);
 		while ((cur2 = ksNext (node->unordered)) != NULL)
 		{
-			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString (cur2));
+			// fprintf (stderr, "DEBUG: NODE: \t%s:(%s)\n", keyName (cur2), keyString
+			// (cur2));
 		}
 	}
 }
-
 
 int elektraPrettyexportSet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, Key * parentKey)
 {
