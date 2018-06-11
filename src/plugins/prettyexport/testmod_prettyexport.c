@@ -45,20 +45,20 @@ static void test_basicKS (void)
 static void test_basicKSTable (void)
 {
 	Key * parentKey =
-		keyNew ("user/tests/prettyexport", KEY_VALUE, elektraFilename (), KEY_META, "description",
+		keyNew ("user/tests/prettyexport", KEY_VALUE, elektraFilename () , KEY_META, "description",
 			"this is the mounted passwd file", KEY_META, "pretty", "table", KEY_META, "pretty/index", "name", KEY_END);
 	KeySet * conf = ksNew (0, KS_END);
 	PLUGIN_OPEN ("prettyexport");
 	KeySet * ks = ksNew (
-		30, keyNew ("user/tests/prettyexport/thomas", KEY_META, "pretty/index", "", KEY_END),
+		30, keyNew ("user/tests/prettyexport/thomas", KEY_META, "pretty/index", "", KEY_META, "pretty/mono", "", KEY_END),
 		keyNew ("user/tests/prettyexport/thomas/gecos", KEY_VALUE, "Thomas\nWaser", KEY_META, "pretty/field", "#1", KEY_END),
 		keyNew ("user/tests/prettyexport/thomas/uid", KEY_VALUE, "1000", KEY_META, "pretty/field", "#2", KEY_END),
 		keyNew ("user/tests/prettyexport/thomas/gid", KEY_VALUE, "1000", KEY_META, "pretty/field", "#3", KEY_END),
-		keyNew ("user/tests/prettyexport/thomas/shell", KEY_VALUE, "/usr\n/bin\n/zsh", KEY_META, "pretty/field", "#4", KEY_END),
+		keyNew ("user/tests/prettyexport/thomas/shell", KEY_VALUE, "/usr\n/bin\n/zsh", KEY_META, "pretty/field", "#4", KEY_META, "pretty/italics", "",KEY_END),
 		keyNew ("user/tests/prettyexport/thomas/home", KEY_VALUE, "/home\n/thomas", KEY_META, "pretty/field", "#5", KEY_END),
 		keyNew ("user/tests/prettyexport/thomas/passwd", KEY_VALUE, "x", KEY_END),
 		keyNew ("user/tests/prettyexport/tgi", KEY_META, "pretty/index", "", KEY_END),
-		keyNew ("user/tests/prettyexport/tgi/gecos", KEY_VALUE, "TGI\nStaff", KEY_META, "pretty/field", "#1", KEY_END),
+		keyNew ("user/tests/prettyexport/tgi/gecos", KEY_VALUE, "TGI\nStaff", KEY_META, "pretty/field", "#1", KEY_META, "pretty/bold", "", KEY_END),
 		keyNew ("user/tests/prettyexport/tgi/uid", KEY_VALUE, "1003", KEY_META, "pretty/field", "#2", KEY_END),
 		keyNew ("user/tests/prettyexport/tgi/gid", KEY_VALUE, "1003", KEY_META, "pretty/field", "#3", KEY_END),
 		keyNew ("user/tests/prettyexport/tgi/shell", KEY_VALUE, "/bin\n/bash", KEY_META, "pretty/field", "#4", KEY_END),

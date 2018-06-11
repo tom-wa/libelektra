@@ -9,6 +9,14 @@
 #include "prettyexport.h"
 #include <stdio.h>
 
+enum _PrettyStyle {
+	PRETTY_STYLE_NORMAL = 0,
+	PRETTY_STYLE_BOLD,
+	PRETTY_STYLE_ITALICS,
+	PRETTY_STYLE_MONO,
+};
+typedef enum _PrettyStyle PrettyStyle;
+
 struct _TableCell
 {
 	PrettyStyle style;
