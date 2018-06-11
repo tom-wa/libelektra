@@ -18,26 +18,31 @@
 
 static ssize_t calcTableCellLength (Key * key)
 {
-    const char * keyStr = keyString (key);
-    char * value = elektraStrNDup(keyStr, elektraStrLen (keyStr)); 
+	const char * keyStr = keyString (key);
+	char * ptr = (char *) keyStr;
 
-    ssize_t len=0;
-    for(const char * line = strtok(value, "\n"); line!=NULL; line = strtok(NULL, "\n"))
-    {
-        ssize_t curLen = elektraStrLen (line);
-        if (curLen > len)
-            len = curLen;
-    }
-    elektraFree (value);
+	ssize_t len = 0;
+	ssize_t tmpLen = 0;
+	while (*ptr != '\0')
+	{
+		++ptr;
+		++tmpLen;
+		if (*ptr == '\n')
+		{
+			if (tmpLen > len) len = tmpLen;
+			tmpLen = 0;
+		}
+	}
+	if (tmpLen > len) len = tmpLen + 1;
 
-    if (keyGetMeta (key, "pretty/bold"))
+	if (keyGetMeta (key, "pretty/bold"))
 		len += 4;
 	else if (keyGetMeta (key, "pretty/italics"))
 		len += 2;
 	else if (keyGetMeta (key, "pretty/mono"))
-		len += 4;    
+		len += 4;
 
-    return len;
+	return len;
 }
 
 static ssize_t calcTableCellHeight (Key * key)
