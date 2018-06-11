@@ -11,44 +11,13 @@
 
 ## Introduction
 
-Copy this prettyexport if you want to start a new
-plugin written in C.
-
-## Usage
-
-You can use `scripts/copy-prettyexport`
-to automatically rename everything to your
-plugin name:
-
-	cd src/plugins
-	../../scripts/copy-prettyexport yourplugin
-
-Then update the README.md of your newly created plugin:
-
-- enter your full name+email in `infos/author`
-- make sure `status`, `placements`, and other clauses conform to
-  descriptions in `doc/CONTRACT.ini`
-- update the one-line description above
-- add your plugin in `src/plugins/README.md`
-- and rewrite the rest of this `README.md` to give a great
-  explanation of what your plugin does
-
-## Dependencies
-
-None.
-
 ## Examples
 
-```sh
-# Backup-and-Restore: user/tests/prettyexport
-
-kdb set user/tests/prettyexport/key value
-#> Create a new key user/tests/prettyexport/key with string "value"
-
-kdb get /tests/prettyexport/key
-#> value
 ```
-
+kdb mount /etc/passwd system/passwd passwd index=name
+kdb mount passwdspec.ini spec/passwd ni
+kdb export /passwd prettyexport -c pretty=table
+```
 ## Limitations
 
 None.
