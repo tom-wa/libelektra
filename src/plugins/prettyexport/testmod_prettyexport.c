@@ -7,7 +7,6 @@
  *
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include <kdbconfig.h>
@@ -67,7 +66,6 @@ static void test_basicKSTable (void)
 		keyNew ("user/tests/prettyexport/tgi/passwd", KEY_VALUE, "x", KEY_END), KS_END);
 	succeed_if (plugin->kdbSet (plugin, ks, parentKey) >= 0, "failed!");
 
-	printf ("%s\n", keyString (parentKey));
 	succeed_if (compare_line_files (srcdir_file ("prettyexport/basicTable.rst"), keyString (parentKey)),
 		    "files do not match as	expected");
 	ksDel (ks);
