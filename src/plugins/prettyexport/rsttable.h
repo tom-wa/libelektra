@@ -26,9 +26,9 @@ ssize_t calcTableHeight (ssize_t numRows, ssize_t rowHeights[numRows]);
 void callocTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight]);
 void freeTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight]);
 
-void printTableDebug(PrettyHeadNode * head, PrettyIndexType indexType, 
+void fillTable(PrettyHeadNode * head, PrettyIndexType indexType, 
         ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight]);
-void printTableRst(FILE * fh, PrettyIndexNode * firstIndexNode, 
+void printTable(FILE * fh, PrettyIndexNode * firstIndexNode, 
         ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight], 
         ssize_t numCols, ssize_t colLengths[numCols], 
         ssize_t numRows, ssize_t rowHeights[numRows]);

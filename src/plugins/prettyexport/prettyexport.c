@@ -81,9 +81,9 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	
     callocTable(tableLength, tableHeight, table);
     
-    printTableDebug(head, indexType, tableLength, tableHeight, table);
+    fillTable(head, indexType, tableLength, tableHeight, table);
 
-    printTableRst(fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
+    printTable(fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
 
     freeTable(tableLength, tableHeight, table);
 }
@@ -141,7 +141,6 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 		}
 	}
 }
-
 
 static Key * keyToFieldIndex (const Key * key, const Key * parent)
 {

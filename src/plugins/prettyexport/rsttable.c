@@ -127,40 +127,53 @@ void freeTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tabl
 	for (int i = 0; i < tableLength; ++i)
 	{
 		for (int j = 0; j < tableHeight; ++j)
-		{
-			elektraFree (table[i][j]);
+        {
+            elektraFree (table[i][j]);
 		}
 	}
 
 }
 
-void printTableDebug(PrettyHeadNode * head, PrettyIndexType indexType, 
+void fillTable(PrettyHeadNode * head, PrettyIndexType indexType, 
         ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight])
 {
+	ssize_t row = 0;
 	Key * cur;
-	ssize_t line = 0;
 	ksRewind (head->nodes);
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
+        ssize_t col = 0;
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
 		if (indexType == PRETTY_INDEX_NAME)
 		{
-			(table[0][line])->value = keyBaseName (node->key);
+			(table[col][row])->value = keyBaseName (node->key);
 		}
 		else
 		{
-			(table[0][line])->value = keyString (node->key);
+			(table[col][row])->value = keyString (node->key);
 		}
+        ++col;
+
 		Key * cur2;
-		ssize_t col = 0;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
-			fprintf (stderr, "DEBUG: table[%zd][%zd] = %s:(%s)\n", col, line, keyName (cur2), keyString (cur2));
-			(table[col + 1][line])->value = keyString (cur2);
+            ssize_t valueLength = keyGetValueSize (cur2);
+            char value[valueLength];
+            keyGetString (cur2, value, valueLength);
+
+            ssize_t currentRowHeight = 0;
+            for(const char * line = strtok(value, "\n"); line!=NULL; line = strtok(NULL, "\n"))
+            {
+			    char * lineAlloc = elektraStrNDup(line, elektraStrLen (line)); 
+                fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row+currentRowHeight, lineAlloc);
+			    (table[col][row + currentRowHeight])->value = lineAlloc;
+                ++currentRowHeight;
+            }
+
 			++col;
 		}
-		++line;
+		++row;
 	}
 }
 
@@ -178,7 +191,7 @@ void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_t colLe
 	fputs ("+\n", fh);
 }
 
-void printTableRst(FILE * fh, PrettyIndexNode * firstIndexNode, 
+void printTable(FILE * fh, PrettyIndexNode * firstIndexNode, 
         ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight], 
         ssize_t numCols, ssize_t colLengths[numCols], 
         ssize_t numRows, ssize_t rowHeights[numRows])
