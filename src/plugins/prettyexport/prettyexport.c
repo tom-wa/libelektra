@@ -58,22 +58,6 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 	return ELEKTRA_PLUGIN_STATUS_NO_UPDATE;
 }
 
-
-// will optimize this shit later
-static void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_t colLengths[])
-{
-	for (ssize_t j = 0; j < numCols; ++j)
-	{
-		fputc ('+', fh);
-		for (ssize_t j2 = 0; j2 < colLengths[j]; ++j2)
-		{
-			fputc (c, fh);
-		}
-	}
-	fputs ("+\n", fh);
-}
-
-
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
 	fprintf (stderr, "DEBUG: printing table rst\n");
@@ -87,81 +71,21 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	ssize_t colLengths[numCols];
 	memset (colLengths, 0, sizeof (colLengths));
 
-	calcSizes (head, indexType, rowHeights, numRows, colLengths, numCols);
+	calcSizes (head, indexType, numRows, rowHeights, numCols, colLengths);
 
-	ssize_t tableLength = calcTableLength (colLengths, numCols);
-	ssize_t tableHeight = calcTableHeight (rowHeights, numRows);
+	ssize_t tableLength = calcTableLength (numCols, colLengths);
+	ssize_t tableHeight = calcTableHeight (numRows, rowHeights);
 
 	fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
-	TableCell * table[tableLength][tableHeight];
-	for (int i = 0; i < tableLength; ++i)
-	{
-		for (int j = 0; j < tableHeight; ++j)
-		{
-			table[i][j] = elektraCalloc (sizeof (TableCell));
-		}
-	}
+    TableCell * table [tableLength][tableHeight];
+	
+    callocTable(tableLength, tableHeight, table);
+    
+    printTableDebug(head, indexType, tableLength, tableHeight, table);
 
-	Key * cur;
-	ssize_t line = 0;
-	ksRewind (head->nodes);
-	while ((cur = ksNext (head->nodes)) != NULL)
-	{
-		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		if (indexType == PRETTY_INDEX_NAME)
-		{
-			(table[0][line])->value = keyBaseName (node->key);
-		}
-		else
-		{
-			(table[0][line])->value = keyString (node->key);
-		}
-		Key * cur2;
-		ssize_t col = 0;
-		ksRewind (node->ordered);
-		while ((cur2 = ksNext (node->ordered)) != NULL)
-		{
-			fprintf (stderr, "DEBUG: table[%zd][%zd] = %s:(%s)\n", col, line, keyName (cur2), keyString (cur2));
-			(table[col + 1][line])->value = keyString (cur2);
-			++col;
-		}
-		++line;
-	}
+    printTableRst(fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
 
-	printSeparatorLine (fh, '-', numCols, colLengths);
-	ksRewind (firstIndexNode->ordered);
-	fprintf (fh, "|%*s|", (int) colLengths[0], " ");
-	int whatever = 1;
-	while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
-	{
-		fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
-		++whatever;
-	}
-	fputc ('\n', fh);
-	printSeparatorLine (fh, '=', numCols, colLengths);
-
-	line = 0;
-	for (ssize_t i = 0; i < numRows; ++i)
-	{
-		for (ssize_t i2 = 0; i2 < rowHeights[i]; ++i2)
-		{
-			fputc ('|', fh);
-			for (ssize_t j = 0; j < numCols; ++j)
-			{
-				fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
-			}
-			fputc ('\n', fh);
-			++line;
-		}
-		printSeparatorLine (fh, '-', numCols, colLengths);
-	}
-	for (int i = 0; i < tableLength; ++i)
-	{
-		for (int j = 0; j < tableHeight; ++j)
-		{
-			elektraFree (table[i][j]);
-		}
-	}
+    freeTable(tableLength, tableHeight, table);
 }
 
 static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType indexType)

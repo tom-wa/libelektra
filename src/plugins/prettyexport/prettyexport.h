@@ -58,14 +58,7 @@ struct _PrettyIndexNode
 	KeySet * unordered;
 };
 
-struct _TableCell
-{
-	PrettyStyle style;
-	const char * value;
-};
-
 typedef struct _PrettyIndexNode PrettyIndexNode;
 typedef struct _PrettyHeadNode PrettyHeadNode;
-typedef struct _TableCell TableCell;
 
 #endif
