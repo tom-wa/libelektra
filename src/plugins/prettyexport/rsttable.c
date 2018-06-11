@@ -7,8 +7,8 @@
  *
  */
 
-#include "prettyexport.h"
 #include "rsttable.h"
+#include "prettyexport.h"
 
 #include <kdb.h>
 #include <kdbease.h> // elektraArrayValidateName, elektraKeyGetRelativeName
@@ -54,9 +54,8 @@ static ssize_t calcTableCellHeight (Key * key)
 	return numberOfLines;
 }
 
-void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, 
-        ssize_t numRows, ssize_t rowHeights[numRows], 
-        ssize_t numCols, ssize_t colLengths[numCols])
+void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t numRows, ssize_t rowHeights[numRows], ssize_t numCols,
+		ssize_t colLengths[numCols])
 {
 	int rowCount = 0;
 	int colCount = 1;
@@ -139,55 +138,55 @@ void freeTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tabl
 	for (int i = 0; i < tableLength; ++i)
 	{
 		for (int j = 0; j < tableHeight; ++j)
-        {
-            elektraFree (table[i][j]);
+		{
+			elektraFree ((table[i][j])->value);
+			elektraFree (table[i][j]);
 		}
 	}
-
 }
 
-void fillTable(PrettyHeadNode * head, PrettyIndexType indexType, 
-        ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight],
-        ssize_t numRows, ssize_t rowHeights[numRows])
+void fillTable (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t tableLength, ssize_t tableHeight,
+		TableCell * table[tableLength][tableHeight], ssize_t numRows, ssize_t rowHeights[numRows])
 {
 	ssize_t row = 0;
 	Key * cur;
 	ksRewind (head->nodes);
 	while ((cur = ksNext (head->nodes)) != NULL)
 	{
-        ssize_t col = 0;
+		ssize_t col = 0;
 		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
 		if (indexType == PRETTY_INDEX_NAME)
 		{
-			(table[col][row])->value = keyBaseName (node->key);
-            fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyBaseName (node->key));
+			(table[col][row])->value = elektraStrNDup (keyBaseName (node->key), elektraStrLen (keyBaseName (node->key)));
+			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyBaseName (node->key));
 		}
 		else
 		{
-			(table[col][row])->value = keyString (node->key);
-            fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyString (node->key));
+			(table[col][row])->value = elektraStrNDup (keyString (node->key), keyGetValueSize (node->key));
+			;
+			// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyString (node->key));
 		}
-        ++col;
+		++col;
 
 		Key * cur2;
 		ksRewind (node->ordered);
 		while ((cur2 = ksNext (node->ordered)) != NULL)
 		{
-            ssize_t valueLength = keyGetValueSize (cur2);
-            char value[valueLength];
-            keyGetString (cur2, value, valueLength);
+			ssize_t valueLength = keyGetValueSize (cur2);
+			char value[valueLength];
+			keyGetString (cur2, value, valueLength);
 
-            ssize_t currentRowHeight = 0;
-            for(const char * line = strtok(value, "\n"); line!=NULL; line = strtok(NULL, "\n"))
-            {
-			    char * lineAlloc = elektraStrNDup(line, elektraStrLen (line)); 
-                fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row+currentRowHeight, lineAlloc);
-			    (table[col][row+currentRowHeight])->value = lineAlloc;
-                ++currentRowHeight;
-            }
+			ssize_t currentRowHeight = 0;
+			for (const char * line = strtok (value, "\n"); line != NULL; line = strtok (NULL, "\n"))
+			{
+				char * lineAlloc = elektraStrNDup (line, elektraStrLen (line));
+				// fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row + currentRowHeight, lineAlloc);
+				(table[col][row + currentRowHeight])->value = lineAlloc;
+				++currentRowHeight;
+			}
 			++col;
 		}
-        row += rowHeights[row]-1;
+		row += rowHeights[row] - 1;
 		++row;
 	}
 }
@@ -206,17 +205,16 @@ void printSeparatorLine (FILE * fh, const char c, ssize_t numCols, ssize_t colLe
 	fputs ("+\n", fh);
 }
 
-void printTable(FILE * fh, PrettyIndexNode * firstIndexNode, 
-        ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight], 
-        ssize_t numCols, ssize_t colLengths[numCols], 
-        ssize_t numRows, ssize_t rowHeights[numRows])
+void printTable (FILE * fh, PrettyIndexNode * firstIndexNode, ssize_t tableLength, ssize_t tableHeight,
+		 TableCell * table[tableLength][tableHeight], ssize_t numCols, ssize_t colLengths[numCols], ssize_t numRows,
+		 ssize_t rowHeights[numRows])
 {
 	printSeparatorLine (fh, '-', numCols, colLengths);
 	ksRewind (firstIndexNode->ordered);
 	fprintf (fh, "|%*s|", (int) colLengths[0], " ");
 	int whatever = 1;
 	Key * cur;
-    while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
+	while ((cur = ksNext (firstIndexNode->ordered)) != NULL)
 	{
 		fprintf (fh, "%-*s|", (int) colLengths[whatever], keyBaseName (cur));
 		++whatever;
@@ -232,10 +230,10 @@ void printTable(FILE * fh, PrettyIndexNode * firstIndexNode,
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-                if((table[j][line])->value)
-				    fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
-                else
-                    fprintf (fh, "%-*c|", (int) colLengths[j], ' ');
+				if ((table[j][line])->value)
+					fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
+				else
+					fprintf (fh, "%-*c|", (int) colLengths[j], ' ');
 			}
 			fputc ('\n', fh);
 			++line;
@@ -243,4 +241,3 @@ void printTable(FILE * fh, PrettyIndexNode * firstIndexNode,
 		printSeparatorLine (fh, '-', numCols, colLengths);
 	}
 }
-
