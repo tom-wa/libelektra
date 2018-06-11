@@ -81,7 +81,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 	
     callocTable(tableLength, tableHeight, table);
     
-    fillTable(head, indexType, tableLength, tableHeight, table);
+    fillTable(head, indexType, tableLength, tableHeight, table, numRows, rowHeights);
 
     printTable(fh, firstIndexNode, tableLength, tableHeight, table, numCols, colLengths, numRows, rowHeights);
 

@@ -135,7 +135,8 @@ void freeTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tabl
 }
 
 void fillTable(PrettyHeadNode * head, PrettyIndexType indexType, 
-        ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight])
+        ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight],
+        ssize_t numRows, ssize_t rowHeights[numRows])
 {
 	ssize_t row = 0;
 	Key * cur;
@@ -147,10 +148,12 @@ void fillTable(PrettyHeadNode * head, PrettyIndexType indexType,
 		if (indexType == PRETTY_INDEX_NAME)
 		{
 			(table[col][row])->value = keyBaseName (node->key);
+            fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyBaseName (node->key));
 		}
 		else
 		{
 			(table[col][row])->value = keyString (node->key);
+            fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row, keyString (node->key));
 		}
         ++col;
 
@@ -167,12 +170,12 @@ void fillTable(PrettyHeadNode * head, PrettyIndexType indexType,
             {
 			    char * lineAlloc = elektraStrNDup(line, elektraStrLen (line)); 
                 fprintf (stderr, "DEBUG: table[%zd][%zd] = %s\n", col, row+currentRowHeight, lineAlloc);
-			    (table[col][row + currentRowHeight])->value = lineAlloc;
+			    (table[col][row+currentRowHeight])->value = lineAlloc;
                 ++currentRowHeight;
             }
-
 			++col;
 		}
+        row += rowHeights[row]-1;
 		++row;
 	}
 }
@@ -217,7 +220,10 @@ void printTable(FILE * fh, PrettyIndexNode * firstIndexNode,
 			fputc ('|', fh);
 			for (ssize_t j = 0; j < numCols; ++j)
 			{
-				fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
+                if((table[j][line])->value)
+				    fprintf (fh, "%-*s|", (int) colLengths[j], (table[j][line])->value);
+                else
+                    fprintf (fh, "%-*c|", (int) colLengths[j], ' ');
 			}
 			fputc ('\n', fh);
 			++line;
