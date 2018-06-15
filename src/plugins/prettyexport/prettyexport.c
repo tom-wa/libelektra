@@ -61,7 +61,6 @@ int elektraPrettyexportGet (Plugin * handle ELEKTRA_UNUSED, KeySet * returned, K
 static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType indexType)
 {
 	// fprintf (stderr, "DEBUG: printing table rst\n");
-
 	ssize_t numRows = ksGetSize (head->nodes);
 	ssize_t rowHeights[numRows];
 	memset (rowHeights, 0, sizeof (rowHeights));
@@ -73,7 +72,7 @@ static void printRstTable (FILE * fh, PrettyHeadNode * head, PrettyIndexType ind
 
 	calcSizes (head, indexType, numRows, rowHeights, numCols, colLengths);
 
-	ssize_t tableLength = calcTableLength (numCols, colLengths);
+	ssize_t tableLength = numCols;
 	ssize_t tableHeight = calcTableHeight (numRows, rowHeights);
 
 	// fprintf (stderr, "DEBUG: table[%zd][%zd]\n", tableLength, tableHeight);
@@ -119,6 +118,7 @@ static void printRstList (FILE * fh, PrettyIndexNode * node, PrettyIndexType ind
 static void printRst (FILE * fh, PrettyHeadNode * head)
 {
 	// fprintf (stderr, "DEBUG: printing rst\n");
+	if (!head || !head->nodes || !ksGetSize (head->nodes)) return;
 	fprintf (fh, "**%s**\n\n", keyName (head->key));
 	if (keyGetMeta (head->key, "description"))
 	{
@@ -129,15 +129,17 @@ static void printRst (FILE * fh, PrettyHeadNode * head)
 	{
 		printRstTable (fh, head, head->indexType);
 	}
-
-	ksRewind (head->nodes);
-	Key * cur;
-	while ((cur = ksNext (head->nodes)) != NULL)
+	else
 	{
-		PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
-		if (head->prettyType == PRETTY_TYPE_LIST)
+		ksRewind (head->nodes);
+		Key * cur;
+		while ((cur = ksNext (head->nodes)) != NULL)
 		{
-			printRstList (fh, node, head->indexType);
+			PrettyIndexNode * node = *(PrettyIndexNode **) keyValue (cur);
+			if (head->prettyType == PRETTY_TYPE_LIST)
+			{
+				printRstList (fh, node, head->indexType);
+			}
 		}
 	}
 }

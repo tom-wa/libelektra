@@ -27,7 +27,6 @@ typedef struct _TableCell TableCell;
 void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t numRows, ssize_t rowHeights[numRows], ssize_t numCols,
 		ssize_t colLengths[numCols]);
 
-ssize_t calcTableLength (ssize_t numCols, ssize_t colLengths[numCols]);
 ssize_t calcTableHeight (ssize_t numRows, ssize_t rowHeights[numRows]);
 
 void callocTable (ssize_t tableLength, ssize_t tableHeight, TableCell * table[tableLength][tableHeight]);

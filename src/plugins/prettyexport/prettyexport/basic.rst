@@ -10,7 +10,7 @@ tgi
   * home: ``/home/tgi``
   * passwd: ``x``
 thomas
-  * gecos: ``Thomas Waser``
+  * gecos: ``Thomas CENSORED``
   * uid: ``1000``
   * gid: ``1000``
   * shell: ``/usr/bin/zsh``

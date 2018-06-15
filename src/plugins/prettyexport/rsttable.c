@@ -16,6 +16,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static inline ssize_t getStyleLength (const Key * key)
+{
+
+	if (keyGetMeta (key, "pretty/bold"))
+		return 4;
+	else if (keyGetMeta (key, "pretty/italics"))
+		return 2;
+	else if (keyGetMeta (key, "pretty/mono"))
+		return 4;
+	else
+		return 0;
+}
+
 static ssize_t calcTableCellLength (Key * key)
 {
 	const char * keyStr = keyString (key);
@@ -34,13 +47,7 @@ static ssize_t calcTableCellLength (Key * key)
 		}
 	}
 	if (tmpLen > len) len = tmpLen + 1;
-
-	if (keyGetMeta (key, "pretty/bold"))
-		len += 4;
-	else if (keyGetMeta (key, "pretty/italics"))
-		len += 2;
-	else if (keyGetMeta (key, "pretty/mono"))
-		len += 4;
+	len += getStyleLength (key);
 
 	return len;
 }
@@ -80,12 +87,7 @@ void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t numRow
 			indexCellLength = keyGetValueSize (node->key);
 		}
 
-		if (keyGetMeta (node->key, "pretty/bold"))
-			indexCellLength += 4;
-		else if (keyGetMeta (node->key, "pretty/italics"))
-			indexCellLength += 2;
-		else if (keyGetMeta (node->key, "pretty/mono"))
-			indexCellLength += 4;
+		indexCellLength += getStyleLength (node->key);
 
 		if (colLengths[0] < indexCellLength) colLengths[0] = indexCellLength;
 		ksRewind (node->ordered);
@@ -108,11 +110,6 @@ void calcSizes (PrettyHeadNode * head, PrettyIndexType indexType, ssize_t numRow
 
 		// TODO check size rowCount < numRows
 	}
-}
-
-ssize_t calcTableLength (ssize_t numCols, ssize_t colLengths[numCols])
-{
-	return numCols;
 }
 
 ssize_t calcTableHeight (ssize_t numRows, ssize_t rowHeights[numRows])
